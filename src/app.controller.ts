@@ -5,7 +5,6 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { I18n, I18nContext } from 'nestjs-i18n';
 import { AppService } from './app.service';
 
 @ApiTags('hello')
@@ -34,7 +33,7 @@ export class AppController {
       },
     },
   })
-  async getHello(@I18n() i18n: I18nContext): Promise<string> {
-    return this.appService.getHello(i18n.lang);
+  async getHello(): Promise<string> {
+    return this.appService.getHello();
   }
 }
