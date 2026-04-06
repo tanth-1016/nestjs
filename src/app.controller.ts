@@ -1,8 +1,9 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Header } from '@nestjs/common';
 import {
   ApiHeader,
   ApiOkResponse,
   ApiOperation,
+  ApiProduces,
   ApiTags,
 } from '@nestjs/swagger';
 import { AppService } from './app.service';
@@ -33,6 +34,8 @@ export class AppController {
       },
     },
   })
+  @ApiProduces('text/plain')
+  @Header('Content-Type', 'text/plain; charset=utf-8')
   async getHello(): Promise<string> {
     return this.appService.getHello();
   }

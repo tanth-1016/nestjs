@@ -6,9 +6,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
 
-  const shouldEnableSwagger =
-    process.env.NODE_ENV !== 'production' ||
-    process.env.ENABLE_SWAGGER === 'true';
+  const shouldEnableSwagger = process.env.NODE_ENV !== 'production';
 
   if (shouldEnableSwagger) {
     const config = new DocumentBuilder()
@@ -28,7 +26,13 @@ async function bootstrap() {
     });
   }
 
-  const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+  const portValue = process.env.PORT;
+  const parsedPort = portValue ? Number(portValue) : NaN;
+  const port =
+    Number.isFinite(parsedPort) && Number.isInteger(parsedPort)
+      ? parsedPort
+      : 3000;
+
   await app.listen(port);
 }
 void bootstrap();

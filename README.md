@@ -77,11 +77,3 @@ src/
 test/
 └── app.e2e-spec.ts     # End-to-end tests
 ```
-
-## Environment Variables
-
-| Variable         | Default | Description                                   |
-| ---------------- | ------- | --------------------------------------------- |
-| `PORT`           | `3000`  | Port the server listens on                    |
-| `NODE_ENV`       | —       | Set to `production` to disable Swagger        |
-| `ENABLE_SWAGGER` | —       | Set to `true` to force-enable Swagger in prod |
