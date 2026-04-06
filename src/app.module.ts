@@ -8,6 +8,7 @@ import {
   I18nJsonLoader,
   QueryResolver,
 } from 'nestjs-i18n';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -26,6 +27,6 @@ import {
     }),
   ],
   controllers: [AppController],
-  providers: [],
+  providers: [AppService],
 })
 export class AppModule {}
