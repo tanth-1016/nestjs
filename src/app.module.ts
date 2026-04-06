@@ -16,7 +16,7 @@ import { AppService } from './app.service';
       fallbackLanguage: 'en',
       loader: I18nJsonLoader,
       loaderOptions: {
-        path: join(__dirname, '/i18n/'),
+        path: join(__dirname, 'i18n'),
         watch: process.env.NODE_ENV !== 'production',
       },
       resolvers: [

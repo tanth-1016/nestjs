@@ -15,7 +15,6 @@ async function bootstrap() {
       .setTitle('NoteJS Tutorial API')
       .setDescription('API documentation for NoteJS Tutorial')
       .setVersion('1.0')
-      .addTag('hello')
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
@@ -29,6 +28,7 @@ async function bootstrap() {
     });
   }
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+  await app.listen(port);
 }
 void bootstrap();

@@ -40,6 +40,36 @@ describe('AppController (e2e)', () => {
       .expect('Hello World');
   });
 
+  it('GET /api/hello/hello-world returns vi by Accept-Language header', () => {
+    return request(app.getHttpServer())
+      .get('/api/hello/hello-world')
+      .set('Accept-Language', 'vi')
+      .expect(200)
+      .expect('Xin chào thế giới');
+  });
+
+  it('GET /api/hello/hello-world returns en by Accept-Language header', () => {
+    return request(app.getHttpServer())
+      .get('/api/hello/hello-world')
+      .set('Accept-Language', 'en')
+      .expect(200)
+      .expect('Hello World');
+  });
+
+  it('GET /api/hello/hello-world returns vi by ?locale query', () => {
+    return request(app.getHttpServer())
+      .get('/api/hello/hello-world?locale=vi')
+      .expect(200)
+      .expect('Xin chào thế giới');
+  });
+
+  it('GET /api/hello/hello-world returns en by ?locale query', () => {
+    return request(app.getHttpServer())
+      .get('/api/hello/hello-world?locale=en')
+      .expect(200)
+      .expect('Hello World');
+  });
+
   afterEach(async () => {
     await app.close();
   });
