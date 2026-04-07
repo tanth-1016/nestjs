@@ -61,6 +61,22 @@ npm run test:e2e
 npm run test:cov
 ```
 
+## Database Migrations
+
+```bash
+# add: generate a new migration from entity changes
+npm run db:migration:generate -- src/database/migrations/AddUsersTable
+
+# apply: run all pending migrations
+npm run db:migration:run
+
+# revert: rollback the last executed migration
+npm run db:migration:revert
+
+# show: list applied/pending migrations
+npm run db:migration:show
+```
+
 ## Project Structure
 
 ```
