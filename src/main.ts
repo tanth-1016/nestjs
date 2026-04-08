@@ -22,6 +22,15 @@ async function bootstrap() {
       .setTitle('NoteJS Tutorial API')
       .setDescription('API documentation for NoteJS Tutorial')
       .setVersion('1.0')
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: 'Paste JWT access token here',
+        },
+        'bearer',
+      )
       .build();
 
     const document = SwaggerModule.createDocument(app, config);

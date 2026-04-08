@@ -13,8 +13,8 @@ export class User {
   @Column({ unique: true })
   email!: string;
 
-  @Column({ name: 'password_hash' })
-  passwordHash!: string;
+  @Column({ name: 'password_hash', select: false })
+  passwordHash?: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;

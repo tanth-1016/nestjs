@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import {
@@ -15,7 +24,13 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
-type RequestWithUser = Request & { user: { id: string; email: string } };
+type AuthenticatedUser = {
+  id: string;
+  email: string;
+  createdAt?: Date;
+};
+
+type RequestWithUser = Request & { user: AuthenticatedUser };
 
 @ApiTags('auth')
 @Controller('auth')
@@ -44,6 +59,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiBody({ type: LoginDto })
   @ApiOkResponse({
@@ -61,7 +77,7 @@ export class AuthController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('me')
-  @ApiBearerAuth()
+  @ApiBearerAuth('bearer')
   @ApiOperation({ summary: 'Get current authenticated user profile' })
   @ApiOkResponse({
     description: 'Authenticated user profile',
@@ -75,16 +91,10 @@ export class AuthController {
   })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   me(@Req() req: RequestWithUser) {
-    const user = req.user as unknown as {
-      id: string;
-      email: string;
-      createdAt?: Date;
-    };
-
     return {
-      id: user.id,
-      email: user.email,
-      createdAt: user.createdAt,
+      id: req.user.id,
+      email: req.user.email,
+      createdAt: req.user.createdAt,
     };
   }
 }

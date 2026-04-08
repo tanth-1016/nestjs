@@ -22,17 +22,44 @@ import { AuthModule } from './auth/auth.module';
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (config: ConfigService) => ({
-        type: 'mysql',
-        host: config.get<string>('DB_HOST'),
-        port: config.get<number>('DB_PORT'),
-        username: config.get<string>('DB_USER'),
-        password: config.get<string>('DB_PASSWORD'),
-        database: config.get<string>('DB_NAME'),
-        entities: [User],
-        synchronize: false,
-        logging: false,
-      }),
+      useFactory: (config: ConfigService) => {
+        if (config.get<string>('NODE_ENV') === 'test') {
+          return {
+            type: 'sqlite',
+            database: ':memory:',
+            entities: [User],
+            synchronize: true,
+            logging: false,
+          };
+        }
+
+        const getRequiredEnv = (name: string): string => {
+          const value = config.getOrThrow<string>(name).trim();
+          if (!value) {
+            throw new Error(`Missing required environment variable: ${name}`);
+          }
+          return value;
+        };
+
+        const dbPortRaw = config.get<string>('DB_PORT') ?? '3306';
+        const dbPort = Number(dbPortRaw);
+
+        if (!Number.isInteger(dbPort) || dbPort < 1 || dbPort > 65535) {
+          throw new Error(`Invalid DB_PORT value: ${dbPortRaw}`);
+        }
+
+        return {
+          type: 'mysql',
+          host: getRequiredEnv('DB_HOST'),
+          port: dbPort,
+          username: getRequiredEnv('DB_USER'),
+          password: getRequiredEnv('DB_PASSWORD'),
+          database: getRequiredEnv('DB_NAME'),
+          entities: [User],
+          synchronize: false,
+          logging: false,
+        };
+      },
       inject: [ConfigService],
     }),
     I18nModule.forRoot({
