@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
+import { DataSource } from 'typeorm';
 import { AppModule } from './../src/app.module';
 
 async function createTestApp(): Promise<INestApplication> {
@@ -21,11 +22,21 @@ async function createTestApp(): Promise<INestApplication> {
   return app;
 }
 
+async function resetTestDatabase(app: INestApplication): Promise<void> {
+  const dataSource = app.get(DataSource);
+  await dataSource.dropDatabase();
+  await dataSource.synchronize();
+}
+
 describe('AppController (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
     app = await createTestApp();
+  });
+
+  beforeEach(async () => {
+    await resetTestDatabase(app);
   });
 
   it('GET /api/hello/hello-world returns vi by x-lang header', () => {
@@ -95,6 +106,10 @@ describe('Auth (e2e)', () => {
 
   beforeAll(async () => {
     app = await createTestApp();
+  });
+
+  beforeEach(async () => {
+    await resetTestDatabase(app);
   });
 
   it('POST /api/auth/register and POST /api/auth/login succeed', async () => {
