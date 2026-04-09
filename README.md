@@ -61,6 +61,50 @@ npm run test:e2e
 npm run test:cov
 ```
 
+## Database Migrations
+
+```bash
+# add: generate a new migration from entity changes
+npm run db:migration:generate -- src/database/migrations/AddUsersTable
+
+# apply: run all pending migrations
+npm run db:migration:run
+
+# revert: rollback the last executed migration
+npm run db:migration:revert
+
+# show: list applied/pending migrations
+npm run db:migration:show
+```
+
+## Auth Quick Test
+
+```bash
+# register (success)
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"b@example.com","password":"12345678"}'
+
+# login (success)
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"b@example.com","password":"12345678"}'
+
+# me (protected) - replace YOUR_ACCESS_TOKEN
+curl http://localhost:3000/api/auth/me \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# register duplicate email (expect 409)
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"b@example.com","password":"12345678"}'
+
+# login wrong password (expect 401)
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"b@example.com","password":"wrong-password"}'
+```
+
 ## Project Structure
 
 ```

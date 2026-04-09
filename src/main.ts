@@ -1,10 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   const shouldEnableSwagger = process.env.NODE_ENV !== 'production';
 
@@ -13,6 +22,15 @@ async function bootstrap() {
       .setTitle('NoteJS Tutorial API')
       .setDescription('API documentation for NoteJS Tutorial')
       .setVersion('1.0')
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: 'Paste JWT access token here',
+        },
+        'bearer',
+      )
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
