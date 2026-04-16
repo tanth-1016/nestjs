@@ -1,7 +1,10 @@
 import { Type } from 'class-transformer';
 import {
+  IsDefined,
   IsEmail,
+  IsNotEmptyObject,
   IsNotEmpty,
+  IsObject,
   IsString,
   MinLength,
   ValidateNested,
@@ -39,6 +42,9 @@ export class RegisterDto {
     description: 'Registration payload',
     type: RegisterUserPayloadDto,
   })
+  @IsDefined()
+  @IsObject()
+  @IsNotEmptyObject()
   @ValidateNested()
   @Type(() => RegisterUserPayloadDto)
   user!: RegisterUserPayloadDto;

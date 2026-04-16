@@ -1,5 +1,3 @@
-// Created by tran.huu.tan
-
 export type UserView = {
   email: string;
   token: string;

@@ -1,5 +1,8 @@
-// Created by tran.huu.tan
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from './user.entity';
@@ -59,8 +62,29 @@ export class UsersAuthService {
     userId: string,
     dto: UpdateCurrentUserDto,
   ): Promise<UserResponse> {
+    const hasAtLeastOneUpdatableField = [
+      dto.user?.email,
+      dto.user?.username,
+      dto.user?.password,
+      dto.user?.bio,
+      dto.user?.image,
+    ].some((value) => value !== undefined);
+
+    if (!hasAtLeastOneUpdatableField) {
+      throw new BadRequestException(
+        'At least one field must be provided for update',
+      );
+    }
+
+    if (
+      dto.user.password !== undefined &&
+      typeof dto.user.password !== 'string'
+    ) {
+      throw new BadRequestException('Password must be a string');
+    }
+
     const passwordHash =
-      dto.user.password !== undefined
+      typeof dto.user.password === 'string'
         ? await bcrypt.hash(dto.user.password, 10)
         : undefined;
 

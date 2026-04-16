@@ -1,10 +1,14 @@
 import { Type } from 'class-transformer';
 import {
+  IsDefined,
   IsEmail,
+  IsNotEmptyObject,
+  IsObject,
   IsOptional,
   IsString,
   IsUrl,
   MinLength,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
@@ -15,7 +19,7 @@ class UpdateCurrentUserPayloadDto {
     required: false,
     description: 'New email',
   })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsEmail()
   email?: string;
 
@@ -24,7 +28,7 @@ class UpdateCurrentUserPayloadDto {
     required: false,
     description: 'New username',
   })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsString()
   username?: string;
 
@@ -34,7 +38,7 @@ class UpdateCurrentUserPayloadDto {
     minLength: 6,
     description: 'New password',
   })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsString()
   @MinLength(6)
   password?: string;
@@ -65,6 +69,9 @@ export class UpdateCurrentUserDto {
     description: 'User update payload',
     type: UpdateCurrentUserPayloadDto,
   })
+  @IsDefined()
+  @IsObject()
+  @IsNotEmptyObject()
   @ValidateNested()
   @Type(() => UpdateCurrentUserPayloadDto)
   user!: UpdateCurrentUserPayloadDto;

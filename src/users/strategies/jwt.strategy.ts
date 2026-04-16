@@ -1,4 +1,3 @@
-// Created by tran.huu.tan
 import {
   Injectable,
   NotFoundException,
@@ -7,7 +6,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { UsersService } from '../users.service';
 
 export type JwtPayload = {
@@ -51,12 +50,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       return null;
     };
 
+    const jwtSecret = config.getOrThrow<string>('JWT_SECRET').trim();
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET must not be empty');
+    }
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         extractJwtFromAuthorizationHeader,
       ]),
       ignoreExpiration: false,
-      secretOrKey: config.getOrThrow<string>('JWT_SECRET'),
+      secretOrKey: jwtSecret,
     });
   }
 

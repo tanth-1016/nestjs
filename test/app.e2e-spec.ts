@@ -195,6 +195,20 @@ describe('Users API (e2e)', () => {
       .expect(409);
   });
 
+  it('POST /api/users returns 400 for missing or empty user payload', async () => {
+    await request(app.getHttpServer()).post('/api/users').send({}).expect(400);
+
+    await request(app.getHttpServer())
+      .post('/api/users')
+      .send({ user: {} })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .post('/api/users')
+      .send({ user: null })
+      .expect(400);
+  });
+
   it('POST /api/users/login returns 401 for wrong password', async () => {
     const email = createUniqueEmail();
     const username = createUniqueUsername();
@@ -208,6 +222,23 @@ describe('Users API (e2e)', () => {
       .post('/api/users/login')
       .send({ user: { email, password: 'WrongPassword123!' } })
       .expect(401);
+  });
+
+  it('POST /api/users/login returns 400 for missing or empty user payload', async () => {
+    await request(app.getHttpServer())
+      .post('/api/users/login')
+      .send({})
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .post('/api/users/login')
+      .send({ user: {} })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .post('/api/users/login')
+      .send({ user: null })
+      .expect(400);
   });
 
   it('GET /api/user requires a valid token auth header', async () => {
@@ -292,6 +323,90 @@ describe('Users API (e2e)', () => {
       .post('/api/users/login')
       .send({ user: { email, password: newPassword } })
       .expect(200);
+  });
+
+  it('PUT /api/user returns 400 when username/email/password is null', async () => {
+    const email = createUniqueEmail();
+    const username = createUniqueUsername();
+
+    await request(app.getHttpServer())
+      .post('/api/users')
+      .send({ user: { username, email, password } })
+      .expect(201);
+
+    const loginResponse = (await request(app.getHttpServer())
+      .post('/api/users/login')
+      .send({ user: { email, password } })
+      .expect(200)) as Response;
+
+    const loginBody = parseUserResponse(loginResponse);
+    const token = loginBody.user.token;
+
+    await request(app.getHttpServer())
+      .put('/api/user')
+      .set('Authorization', `Token ${token}`)
+      .send({
+        user: {
+          username: null,
+        },
+      })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .put('/api/user')
+      .set('Authorization', `Token ${token}`)
+      .send({
+        user: {
+          email: null,
+        },
+      })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .put('/api/user')
+      .set('Authorization', `Token ${token}`)
+      .send({
+        user: {
+          password: null,
+        },
+      })
+      .expect(400);
+  });
+
+  it('PUT /api/user returns 400 for missing or empty user payload', async () => {
+    const email = createUniqueEmail();
+    const username = createUniqueUsername();
+
+    await request(app.getHttpServer())
+      .post('/api/users')
+      .send({ user: { username, email, password } })
+      .expect(201);
+
+    const loginResponse = (await request(app.getHttpServer())
+      .post('/api/users/login')
+      .send({ user: { email, password } })
+      .expect(200)) as Response;
+
+    const loginBody = parseUserResponse(loginResponse);
+    const token = loginBody.user.token;
+
+    await request(app.getHttpServer())
+      .put('/api/user')
+      .set('Authorization', `Token ${token}`)
+      .send({})
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .put('/api/user')
+      .set('Authorization', `Token ${token}`)
+      .send({ user: {} })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .put('/api/user')
+      .set('Authorization', `Token ${token}`)
+      .send({ user: null })
+      .expect(400);
   });
 
   afterAll(async () => {

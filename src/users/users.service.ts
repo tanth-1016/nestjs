@@ -84,8 +84,8 @@ export class UsersService {
   async updateCurrentUser(
     userId: string,
     patch: {
-      email?: string;
-      username?: string;
+      email?: string | null;
+      username?: string | null;
       passwordHash?: string;
       bio?: string | null;
       image?: string | null;
@@ -93,16 +93,26 @@ export class UsersService {
   ): Promise<User> {
     const user = await this.findById(userId);
 
+    if (patch.email !== undefined && typeof patch.email !== 'string') {
+      throw new BadRequestException('Email must be a string');
+    }
+
+    if (patch.username !== undefined && typeof patch.username !== 'string') {
+      throw new BadRequestException('Username must be a string');
+    }
+
     const nextEmail =
       patch.email !== undefined ? patch.email.trim().toLowerCase() : undefined;
     const nextUsername =
       patch.username !== undefined ? patch.username.trim() : undefined;
 
+    if (nextEmail !== undefined && nextEmail.length === 0) {
+      throw new BadRequestException('Email cannot be empty');
+    }
     if (nextUsername !== undefined && nextUsername.length === 0) {
       throw new BadRequestException('Username cannot be empty');
     }
-
-    if (nextEmail && nextEmail !== user.email) {
+    if (nextEmail !== undefined && nextEmail !== user.email) {
       const existingEmailUser = await this.findByEmail(nextEmail);
       if (existingEmailUser && existingEmailUser.id !== user.id) {
         throw new ConflictException('Email or username already used');

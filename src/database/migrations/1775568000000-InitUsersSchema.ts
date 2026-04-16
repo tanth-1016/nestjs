@@ -1,4 +1,3 @@
-// Created by tran.huu.tan
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class InitUsersSchema1775568000000 implements MigrationInterface {

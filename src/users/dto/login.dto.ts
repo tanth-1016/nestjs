@@ -1,5 +1,12 @@
 import { Type } from 'class-transformer';
-import { IsEmail, IsString, ValidateNested } from 'class-validator';
+import {
+  IsDefined,
+  IsEmail,
+  IsNotEmptyObject,
+  IsObject,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 class LoginUserPayloadDto {
@@ -23,6 +30,9 @@ export class LoginDto {
     description: 'Login payload',
     type: LoginUserPayloadDto,
   })
+  @IsDefined()
+  @IsObject()
+  @IsNotEmptyObject()
   @ValidateNested()
   @Type(() => LoginUserPayloadDto)
   user!: LoginUserPayloadDto;

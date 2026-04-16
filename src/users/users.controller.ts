@@ -1,4 +1,3 @@
-// Created by tran.huu.tan
 import {
   Body,
   Controller,
@@ -11,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Request } from 'express';
+import type { Request } from 'express';
 import {
   ApiConflictResponse,
   ApiCreatedResponse,
