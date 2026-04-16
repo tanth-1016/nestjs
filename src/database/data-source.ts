@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import { join } from 'node:path';
 import { DataSource } from 'typeorm';
-import { User } from '../users/user.entity';
 
 const getRequiredEnv = (name: string): string => {
   const value = process.env[name];
@@ -23,6 +22,7 @@ const dbPort = parsePortWithDefault('DB_PORT', 3306);
 const dbUser = getRequiredEnv('DB_USER');
 const dbPassword = getRequiredEnv('DB_PASSWORD');
 const dbName = getRequiredEnv('DB_NAME');
+
 export default new DataSource({
   type: 'mysql',
   host: dbHost,
@@ -30,7 +30,9 @@ export default new DataSource({
   username: dbUser,
   password: dbPassword,
   database: dbName,
-  entities: [User],
+  entities: [
+    join(__dirname, '..', '**', '*.entity.{ts,js}').replace(/\\/g, '/'),
+  ],
   migrations: [join(__dirname, 'migrations', '*.{ts,js}').replace(/\\/g, '/')],
   synchronize: false,
   logging: false,

@@ -77,32 +77,32 @@ npm run db:migration:revert
 npm run db:migration:show
 ```
 
-## Auth Quick Test
+## Users API Quick Test
 
 ```bash
 # register (success)
-curl -X POST http://localhost:3000/api/auth/register \
+curl -X POST http://localhost:3000/api/users \
   -H "Content-Type: application/json" \
-  -d '{"email":"b@example.com","password":"12345678"}'
+  -d '{"user":{"username":"jacob","email":"b@example.com","password":"12345678"}}'
 
 # login (success)
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST http://localhost:3000/api/users/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"b@example.com","password":"12345678"}'
+  -d '{"user":{"email":"b@example.com","password":"12345678"}}'
 
-# me (protected) - replace YOUR_ACCESS_TOKEN
-curl http://localhost:3000/api/auth/me \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+# current user (protected) - replace YOUR_ACCESS_TOKEN
+curl http://localhost:3000/api/user \
+  -H "Authorization: Token YOUR_ACCESS_TOKEN"
 
 # register duplicate email (expect 409)
-curl -X POST http://localhost:3000/api/auth/register \
+curl -X POST http://localhost:3000/api/users \
   -H "Content-Type: application/json" \
-  -d '{"email":"b@example.com","password":"12345678"}'
+  -d '{"user":{"username":"jacob2","email":"b@example.com","password":"12345678"}}'
 
 # login wrong password (expect 401)
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST http://localhost:3000/api/users/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"b@example.com","password":"wrong-password"}'
+  -d '{"user":{"email":"b@example.com","password":"wrong-password"}}'
 ```
 
 ## Project Structure
