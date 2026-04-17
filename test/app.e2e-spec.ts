@@ -1,8 +1,33 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import request from 'supertest';
+import request, { Response } from 'supertest';
 import { DataSource } from 'typeorm';
 import { AppModule } from './../src/app.module';
+
+type UserResponseBody = {
+  user: {
+    email: string;
+    username: string;
+    bio: string | null;
+    image: string | null;
+  };
+  token?: string;
+};
+
+function parseUserResponse(response: Response): UserResponseBody {
+  const parsed = JSON.parse(response.text) as unknown;
+  if (
+    typeof parsed !== 'object' ||
+    parsed === null ||
+    !('user' in parsed) ||
+    typeof (parsed as { user?: unknown }).user !== 'object' ||
+    (parsed as { user?: unknown }).user === null
+  ) {
+    throw new Error('Invalid user response shape');
+  }
+
+  return parsed as UserResponseBody;
+}
 
 async function createTestApp(): Promise<INestApplication> {
   const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -97,11 +122,13 @@ describe('AppController (e2e)', () => {
   });
 });
 
-describe('Auth (e2e)', () => {
+describe('Users API (e2e)', () => {
   let app: INestApplication;
 
   const createUniqueEmail = () =>
     `user.${Date.now()}.${Math.random().toString(36).slice(2)}@example.com`;
+  const createUniqueUsername = () =>
+    `user_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const password = 'Password123!';
 
   beforeAll(async () => {
@@ -112,76 +139,265 @@ describe('Auth (e2e)', () => {
     await resetTestDatabase(app);
   });
 
-  it('POST /api/auth/register and POST /api/auth/login succeed', async () => {
+  it('POST /api/users and POST /api/users/login succeed', async () => {
     const email = createUniqueEmail();
+    const username = createUniqueUsername();
 
-    const registerResponse = await request(app.getHttpServer())
-      .post('/api/auth/register')
-      .send({ email, password })
-      .expect(201);
+    const registerResponse = (await request(app.getHttpServer())
+      .post('/api/users')
+      .send({
+        user: {
+          username,
+          email,
+          password,
+        },
+      })
+      .expect(201)) as Response;
 
-    expect(registerResponse.body.user).toMatchObject({ email });
-    expect(registerResponse.body.accessToken).toEqual(expect.any(String));
+    const registerBody = parseUserResponse(registerResponse);
+    expect(registerBody.user).toMatchObject({
+      email,
+      username,
+    });
 
-    const loginResponse = await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({ email, password })
-      .expect(200);
+    const loginResponse = (await request(app.getHttpServer())
+      .post('/api/users/login')
+      .send({ user: { email, password } })
+      .expect(200)) as Response;
 
-    expect(loginResponse.body.accessToken).toEqual(expect.any(String));
+    const loginBody = parseUserResponse(loginResponse);
+    expect(loginBody.user).toMatchObject({
+      email,
+      username,
+    });
+    expect(typeof loginBody.token).toBe('string');
   });
 
-  it('POST /api/auth/register returns 409 for duplicate email', async () => {
+  it('POST /api/users returns 409 for duplicate email', async () => {
     const email = createUniqueEmail();
+    const username = createUniqueUsername();
 
     await request(app.getHttpServer())
-      .post('/api/auth/register')
-      .send({ email, password })
+      .post('/api/users')
+      .send({ user: { username, email, password } })
       .expect(201);
 
     await request(app.getHttpServer())
-      .post('/api/auth/register')
-      .send({ email, password })
+      .post('/api/users')
+      .send({
+        user: {
+          username: createUniqueUsername(),
+          email,
+          password,
+        },
+      })
       .expect(409);
   });
 
-  it('POST /api/auth/login returns 401 for wrong password', async () => {
-    const email = createUniqueEmail();
+  it('POST /api/users returns 400 for missing or empty user payload', async () => {
+    await request(app.getHttpServer()).post('/api/users').send({}).expect(400);
 
     await request(app.getHttpServer())
-      .post('/api/auth/register')
-      .send({ email, password })
+      .post('/api/users')
+      .send({ user: {} })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .post('/api/users')
+      .send({ user: null })
+      .expect(400);
+  });
+
+  it('POST /api/users/login returns 401 for wrong password', async () => {
+    const email = createUniqueEmail();
+    const username = createUniqueUsername();
+
+    await request(app.getHttpServer())
+      .post('/api/users')
+      .send({ user: { username, email, password } })
       .expect(201);
 
     await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({ email, password: 'WrongPassword123!' })
+      .post('/api/users/login')
+      .send({ user: { email, password: 'WrongPassword123!' } })
       .expect(401);
   });
 
-  it('GET /api/auth/me requires a valid bearer token', async () => {
-    const email = createUniqueEmail();
+  it('POST /api/users/login returns 400 for missing or empty user payload', async () => {
+    await request(app.getHttpServer())
+      .post('/api/users/login')
+      .send({})
+      .expect(400);
 
     await request(app.getHttpServer())
-      .post('/api/auth/register')
-      .send({ email, password })
+      .post('/api/users/login')
+      .send({ user: {} })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .post('/api/users/login')
+      .send({ user: null })
+      .expect(400);
+  });
+
+  it('GET /api/user requires a valid token auth header', async () => {
+    const email = createUniqueEmail();
+    const username = createUniqueUsername();
+
+    await request(app.getHttpServer())
+      .post('/api/users')
+      .send({ user: { username, email, password } })
       .expect(201);
 
-    const loginResponse = await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({ email, password })
+    const loginResponse = (await request(app.getHttpServer())
+      .post('/api/users/login')
+      .send({ user: { email, password } })
+      .expect(200)) as Response;
+
+    const loginBody = parseUserResponse(loginResponse);
+    const token = loginBody.token;
+
+    await request(app.getHttpServer()).get('/api/user').expect(401);
+
+    const meResponse = (await request(app.getHttpServer())
+      .get('/api/user')
+      .set('Authorization', `Token ${token}`)
+      .expect(200)) as Response;
+
+    const meBody = parseUserResponse(meResponse);
+    expect(meBody.user).toMatchObject({
+      email,
+      username,
+    });
+  });
+
+  it('PUT /api/user updates username, bio, image and password', async () => {
+    const email = createUniqueEmail();
+    const username = createUniqueUsername();
+
+    await request(app.getHttpServer())
+      .post('/api/users')
+      .send({ user: { username, email, password } })
+      .expect(201);
+
+    const loginResponse = (await request(app.getHttpServer())
+      .post('/api/users/login')
+      .send({ user: { email, password } })
+      .expect(200)) as Response;
+
+    const loginBody = parseUserResponse(loginResponse);
+    const token = loginBody.token;
+    const updatedUsername = createUniqueUsername();
+    const newPassword = 'NewPassword123!';
+
+    const updateResponse = (await request(app.getHttpServer())
+      .put('/api/user')
+      .set('Authorization', `Token ${token}`)
+      .send({
+        user: {
+          username: updatedUsername,
+          bio: 'I like to skateboard',
+          image: 'https://i.stack.imgur.com/xHWG8.jpg',
+          password: newPassword,
+        },
+      })
+      .expect(200)) as Response;
+
+    const updateBody = parseUserResponse(updateResponse);
+    expect(updateBody.user).toMatchObject({
+      email,
+      username: updatedUsername,
+      bio: 'I like to skateboard',
+      image: 'https://i.stack.imgur.com/xHWG8.jpg',
+    });
+
+    await request(app.getHttpServer())
+      .post('/api/users/login')
+      .send({ user: { email, password } })
+      .expect(401);
+
+    await request(app.getHttpServer())
+      .post('/api/users/login')
+      .send({ user: { email, password: newPassword } })
       .expect(200);
+  });
 
-    const token = loginResponse.body.accessToken as string;
+  it('PUT /api/user returns 400 when username/email/password is null', async () => {
+    const email = createUniqueEmail();
+    const username = createUniqueUsername();
 
-    await request(app.getHttpServer()).get('/api/auth/me').expect(401);
+    await request(app.getHttpServer())
+      .post('/api/users')
+      .send({ user: { username, email, password } })
+      .expect(201);
 
-    const meResponse = await request(app.getHttpServer())
-      .get('/api/auth/me')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200);
+    const loginResponse = (await request(app.getHttpServer())
+      .post('/api/users/login')
+      .send({ user: { email, password } })
+      .expect(200)) as Response;
 
-    expect(meResponse.body).toMatchObject({ email });
+    const loginBody = parseUserResponse(loginResponse);
+    const token = loginBody.token;
+
+    await request(app.getHttpServer())
+      .put('/api/user')
+      .set('Authorization', `Token ${token}`)
+      .send({
+        user: {
+          username: null,
+        },
+      })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .put('/api/user')
+      .set('Authorization', `Token ${token}`)
+      .send({
+        user: {
+          email: null,
+        },
+      })
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .put('/api/user')
+      .set('Authorization', `Token ${token}`)
+      .send({
+        user: {
+          password: null,
+        },
+      })
+      .expect(400);
+  });
+
+  it('PUT /api/user returns 400 for missing or null user payload', async () => {
+    const email = createUniqueEmail();
+    const username = createUniqueUsername();
+
+    await request(app.getHttpServer())
+      .post('/api/users')
+      .send({ user: { username, email, password } })
+      .expect(201);
+
+    const loginResponse = (await request(app.getHttpServer())
+      .post('/api/users/login')
+      .send({ user: { email, password } })
+      .expect(200)) as Response;
+
+    const loginBody = parseUserResponse(loginResponse);
+    const token = loginBody.token;
+
+    await request(app.getHttpServer())
+      .put('/api/user')
+      .set('Authorization', `Token ${token}`)
+      .send({})
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .put('/api/user')
+      .set('Authorization', `Token ${token}`)
+      .send({ user: null })
+      .expect(400);
   });
 
   afterAll(async () => {

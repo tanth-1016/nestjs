@@ -27,9 +27,10 @@ async function bootstrap() {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT',
-          description: 'Paste JWT access token here',
+          description:
+            'Supports Authorization as Bearer <JWT>, Token <JWT>, or raw JWT token.',
         },
-        'bearer',
+        'tokenAuth',
       )
       .build();
 

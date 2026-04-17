@@ -1,3 +1,10 @@
 {
-  "HELLO": "Xin chào thế giới"
+  "HELLO": "Xin chào thế giới",
+  "USERS": {
+    "INVALID_CREDENTIALS": "Thong tin dang nhap khong hop le",
+    "PASSWORD_MUST_BE_STRING": "Mat khau phai la chuoi",
+    "NOT_FOUND": "Khong tim thay nguoi dung",
+    "USERNAME_REQUIRED": "Ten nguoi dung la bat buoc",
+    "EMAIL_OR_USERNAME_ALREADY_USED": "Email hoac ten nguoi dung da duoc su dung"
+  }
 }
