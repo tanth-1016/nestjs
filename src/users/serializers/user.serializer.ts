@@ -2,7 +2,6 @@ export type UserSerializerType = 'BASIC_INFO' | 'PROFILE';
 
 export type BasicInfoUser = {
   email: string;
-  token: string;
   username: string;
   bio: string | null;
   image: string | null;
@@ -19,6 +18,11 @@ export type BasicInfoUserResponse = {
   user: BasicInfoUser;
 };
 
+export type LoginResponse = {
+  user: BasicInfoUser;
+  token: string;
+};
+
 type UserSerializerShapeMap = {
   BASIC_INFO: BasicInfoUser;
   PROFILE: ProfileUser;
@@ -27,7 +31,7 @@ type UserSerializerShapeMap = {
 const USER_FIELDS: {
   [K in UserSerializerType]: Array<keyof UserSerializerShapeMap[K]>;
 } = {
-  BASIC_INFO: ['email', 'token', 'username', 'bio', 'image'],
+  BASIC_INFO: ['email', 'username', 'bio', 'image'],
   PROFILE: ['username', 'bio', 'image', 'following'],
 };
 

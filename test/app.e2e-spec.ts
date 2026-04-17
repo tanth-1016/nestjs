@@ -7,11 +7,11 @@ import { AppModule } from './../src/app.module';
 type UserResponseBody = {
   user: {
     email: string;
-    token: string;
     username: string;
     bio: string | null;
     image: string | null;
   };
+  token?: string;
 };
 
 function parseUserResponse(response: Response): UserResponseBody {
@@ -159,7 +159,6 @@ describe('Users API (e2e)', () => {
       email,
       username,
     });
-    expect(typeof registerBody.user.token).toBe('string');
 
     const loginResponse = (await request(app.getHttpServer())
       .post('/api/users/login')
@@ -171,7 +170,7 @@ describe('Users API (e2e)', () => {
       email,
       username,
     });
-    expect(typeof loginBody.user.token).toBe('string');
+    expect(typeof loginBody.token).toBe('string');
   });
 
   it('POST /api/users returns 409 for duplicate email', async () => {
@@ -256,7 +255,7 @@ describe('Users API (e2e)', () => {
       .expect(200)) as Response;
 
     const loginBody = parseUserResponse(loginResponse);
-    const token = loginBody.user.token;
+    const token = loginBody.token;
 
     await request(app.getHttpServer()).get('/api/user').expect(401);
 
@@ -270,7 +269,6 @@ describe('Users API (e2e)', () => {
       email,
       username,
     });
-    expect(typeof meBody.user.token).toBe('string');
   });
 
   it('PUT /api/user updates username, bio, image and password', async () => {
@@ -288,7 +286,7 @@ describe('Users API (e2e)', () => {
       .expect(200)) as Response;
 
     const loginBody = parseUserResponse(loginResponse);
-    const token = loginBody.user.token;
+    const token = loginBody.token;
     const updatedUsername = createUniqueUsername();
     const newPassword = 'NewPassword123!';
 
@@ -312,7 +310,6 @@ describe('Users API (e2e)', () => {
       bio: 'I like to skateboard',
       image: 'https://i.stack.imgur.com/xHWG8.jpg',
     });
-    expect(typeof updateBody.user.token).toBe('string');
 
     await request(app.getHttpServer())
       .post('/api/users/login')
@@ -340,7 +337,7 @@ describe('Users API (e2e)', () => {
       .expect(200)) as Response;
 
     const loginBody = parseUserResponse(loginResponse);
-    const token = loginBody.user.token;
+    const token = loginBody.token;
 
     await request(app.getHttpServer())
       .put('/api/user')
@@ -388,7 +385,7 @@ describe('Users API (e2e)', () => {
       .expect(200)) as Response;
 
     const loginBody = parseUserResponse(loginResponse);
-    const token = loginBody.user.token;
+    const token = loginBody.token;
 
     await request(app.getHttpServer())
       .put('/api/user')

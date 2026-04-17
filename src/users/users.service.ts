@@ -1,3 +1,4 @@
+import { BasicInfoUser, UserSerializer } from './serializers/user.serializer';
 import {
   BadRequestException,
   ConflictException,
@@ -100,7 +101,7 @@ export class UsersService {
       bio?: string | null;
       image?: string | null;
     },
-  ): Promise<User> {
+  ): Promise<BasicInfoUser> {
     const user = await this.findById(userId);
 
     const nextEmail = patch.email;
@@ -138,7 +139,14 @@ export class UsersService {
     }
 
     try {
-      return await this.userRepository.save(user);
+      const updatedUser = await this.userRepository.save(user);
+      const serialized = new UserSerializer(
+        { ...updatedUser },
+        {
+          type: 'BASIC_INFO',
+        },
+      ).serialize();
+      return serialized;
     } catch (error) {
       if (this.isDuplicateKeyError(error)) {
         throw new ConflictException(

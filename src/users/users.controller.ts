@@ -22,7 +22,10 @@ import {
 } from '@nestjs/swagger';
 import { UsersAuthService } from './users-auth.service';
 import { LoginDto, RegisterDto, UpdateCurrentUserDto } from './dto';
-import type { BasicInfoUserResponse } from './serializers/user.serializer';
+import type {
+  BasicInfoUserResponse,
+  LoginResponse,
+} from './serializers/user.serializer';
 
 type AuthenticatedUser = {
   id: string;
@@ -45,7 +48,6 @@ export class UsersController {
       example: {
         user: {
           email: 'jake@jake.jake',
-          token: 'jwt.token.here',
           username: 'Jacob',
           bio: null,
           image: null,
@@ -67,16 +69,16 @@ export class UsersController {
       example: {
         user: {
           email: 'jake@jake.jake',
-          token: 'jwt.token.here',
           username: 'Jacob',
           bio: null,
           image: null,
         },
+        token: 'jwt.token.here',
       },
     },
   })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
-  login(@Body() dto: LoginDto): Promise<BasicInfoUserResponse> {
+  login(@Body() dto: LoginDto): Promise<LoginResponse> {
     return this.usersAuthService.login(dto);
   }
 
@@ -90,7 +92,6 @@ export class UsersController {
       example: {
         user: {
           email: 'jake@jake.jake',
-          token: 'jwt.token.here',
           username: 'Jacob',
           bio: null,
           image: null,
@@ -115,7 +116,6 @@ export class UsersController {
       example: {
         user: {
           email: 'jake@jake.jake',
-          token: 'jwt.token.here',
           username: 'Jacob',
           bio: 'I like to skateboard',
           image: 'https://i.stack.imgur.com/xHWG8.jpg',
