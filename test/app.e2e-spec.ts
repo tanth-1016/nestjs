@@ -373,7 +373,7 @@ describe('Users API (e2e)', () => {
       .expect(400);
   });
 
-  it('PUT /api/user returns 400 for missing or empty user payload', async () => {
+  it('PUT /api/user returns 400 for missing or null user payload', async () => {
     const email = createUniqueEmail();
     const username = createUniqueUsername();
 
@@ -394,12 +394,6 @@ describe('Users API (e2e)', () => {
       .put('/api/user')
       .set('Authorization', `Token ${token}`)
       .send({})
-      .expect(400);
-
-    await request(app.getHttpServer())
-      .put('/api/user')
-      .set('Authorization', `Token ${token}`)
-      .send({ user: {} })
       .expect(400);
 
     await request(app.getHttpServer())

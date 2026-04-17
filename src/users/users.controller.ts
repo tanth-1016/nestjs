@@ -22,7 +22,7 @@ import {
 } from '@nestjs/swagger';
 import { UsersAuthService } from './users-auth.service';
 import { LoginDto, RegisterDto, UpdateCurrentUserDto } from './dto';
-import type { UserResponse } from './types/user-response.types';
+import type { BasicInfoUserResponse } from './serializers/user.serializer';
 
 type AuthenticatedUser = {
   id: string;
@@ -54,7 +54,7 @@ export class UsersController {
     },
   })
   @ApiConflictResponse({ description: 'Email or username already used' })
-  register(@Body() dto: RegisterDto): Promise<UserResponse> {
+  register(@Body() dto: RegisterDto): Promise<BasicInfoUserResponse> {
     return this.usersAuthService.register(dto);
   }
 
@@ -76,7 +76,7 @@ export class UsersController {
     },
   })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
-  login(@Body() dto: LoginDto): Promise<UserResponse> {
+  login(@Body() dto: LoginDto): Promise<BasicInfoUserResponse> {
     return this.usersAuthService.login(dto);
   }
 
@@ -101,7 +101,7 @@ export class UsersController {
   @ApiUnauthorizedResponse({
     description: 'Missing or invalid Authorization token',
   })
-  getCurrentUser(@Req() req: RequestWithUser): Promise<UserResponse> {
+  getCurrentUser(@Req() req: RequestWithUser): Promise<BasicInfoUserResponse> {
     return this.usersAuthService.getCurrentUser(req.user.id);
   }
 
@@ -130,7 +130,7 @@ export class UsersController {
   updateCurrentUser(
     @Req() req: RequestWithUser,
     @Body() dto: UpdateCurrentUserDto,
-  ): Promise<UserResponse> {
+  ): Promise<BasicInfoUserResponse> {
     return this.usersAuthService.updateCurrentUser(req.user.id, dto);
   }
 }

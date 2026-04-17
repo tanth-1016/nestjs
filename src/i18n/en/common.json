@@ -1,3 +1,10 @@
 {
-  "HELLO": "Hello World"
+  "HELLO": "Hello World",
+  "USERS": {
+    "INVALID_CREDENTIALS": "Invalid credentials",
+    "PASSWORD_MUST_BE_STRING": "Password must be a string",
+    "NOT_FOUND": "User not found",
+    "USERNAME_REQUIRED": "Username is required",
+    "EMAIL_OR_USERNAME_ALREADY_USED": "Email or username already used"
+  }
 }

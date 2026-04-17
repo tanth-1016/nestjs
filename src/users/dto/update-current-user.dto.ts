@@ -1,7 +1,8 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsDefined,
   IsEmail,
+  IsNotEmpty,
   IsNotEmptyObject,
   IsObject,
   IsOptional,
@@ -19,6 +20,9 @@ class UpdateCurrentUserPayloadDto {
     required: false,
     description: 'New email',
   })
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
   @ValidateIf((_, value) => value !== undefined)
   @IsEmail()
   email?: string;
@@ -28,8 +32,12 @@ class UpdateCurrentUserPayloadDto {
     required: false,
     description: 'New username',
   })
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
   @ValidateIf((_, value) => value !== undefined)
   @IsString()
+  @IsNotEmpty()
   username?: string;
 
   @ApiProperty({

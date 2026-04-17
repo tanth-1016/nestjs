@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { I18nService } from 'nestjs-i18n';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
 
@@ -13,6 +14,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly i18n: I18nService,
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -22,7 +24,9 @@ export class UsersService {
   async findById(id: string): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(
+        this.i18n.translate('common.USERS.NOT_FOUND'),
+      );
     }
     return user;
   }
@@ -53,7 +57,9 @@ export class UsersService {
     const usernameNormalized = input.username.trim();
 
     if (!usernameNormalized) {
-      throw new BadRequestException('Username is required');
+      throw new BadRequestException(
+        this.i18n.translate('common.USERS.USERNAME_REQUIRED'),
+      );
     }
 
     const [existingEmail, existingUsername] = await Promise.all([
@@ -62,7 +68,9 @@ export class UsersService {
     ]);
 
     if (existingEmail || existingUsername) {
-      throw new ConflictException('Email or username already used');
+      throw new ConflictException(
+        this.i18n.translate('common.USERS.EMAIL_OR_USERNAME_ALREADY_USED'),
+      );
     }
 
     const user = this.userRepository.create({
@@ -75,7 +83,9 @@ export class UsersService {
       return await this.userRepository.save(user);
     } catch (error) {
       if (this.isDuplicateKeyError(error)) {
-        throw new ConflictException('Email or username already used');
+        throw new ConflictException(
+          this.i18n.translate('common.USERS.EMAIL_OR_USERNAME_ALREADY_USED'),
+        );
       }
       throw error;
     }
@@ -93,37 +103,24 @@ export class UsersService {
   ): Promise<User> {
     const user = await this.findById(userId);
 
-    if (patch.email !== undefined && typeof patch.email !== 'string') {
-      throw new BadRequestException('Email must be a string');
-    }
-
-    if (patch.username !== undefined && typeof patch.username !== 'string') {
-      throw new BadRequestException('Username must be a string');
-    }
-
-    const nextEmail =
-      patch.email !== undefined ? patch.email.trim().toLowerCase() : undefined;
-    const nextUsername =
-      patch.username !== undefined ? patch.username.trim() : undefined;
-
-    if (nextEmail !== undefined && nextEmail.length === 0) {
-      throw new BadRequestException('Email cannot be empty');
-    }
-    if (nextUsername !== undefined && nextUsername.length === 0) {
-      throw new BadRequestException('Username cannot be empty');
-    }
-    if (nextEmail !== undefined && nextEmail !== user.email) {
+    const nextEmail = patch.email;
+    const nextUsername = patch.username;
+    if (typeof nextEmail === 'string' && nextEmail !== user.email) {
       const existingEmailUser = await this.findByEmail(nextEmail);
       if (existingEmailUser && existingEmailUser.id !== user.id) {
-        throw new ConflictException('Email or username already used');
+        throw new ConflictException(
+          this.i18n.translate('common.USERS.EMAIL_OR_USERNAME_ALREADY_USED'),
+        );
       }
       user.email = nextEmail;
     }
 
-    if (nextUsername && nextUsername !== user.username) {
+    if (typeof nextUsername === 'string' && nextUsername !== user.username) {
       const existingUsernameUser = await this.findByUsername(nextUsername);
       if (existingUsernameUser && existingUsernameUser.id !== user.id) {
-        throw new ConflictException('Email or username already used');
+        throw new ConflictException(
+          this.i18n.translate('common.USERS.EMAIL_OR_USERNAME_ALREADY_USED'),
+        );
       }
       user.username = nextUsername;
     }
@@ -144,7 +141,9 @@ export class UsersService {
       return await this.userRepository.save(user);
     } catch (error) {
       if (this.isDuplicateKeyError(error)) {
-        throw new ConflictException('Email or username already used');
+        throw new ConflictException(
+          this.i18n.translate('common.USERS.EMAIL_OR_USERNAME_ALREADY_USED'),
+        );
       }
       throw error;
     }
